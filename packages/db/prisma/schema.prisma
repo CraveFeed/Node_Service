@@ -8,29 +8,48 @@ generator db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  username  String    @unique
-  password  String
-  bio       String
-  avatar    String
-  firstName String
-  lastName  String
-  Latitude  String
-  Longitude String
-  Spiciness Int
-  Sweetness Int
-  Dish      String
-  Sourness  Int
-  Type      String
-  Allergies String
-  City      String
-  posts     Post[]
-  likes     Like[]
-  comments  Comment[]
-  followers Follows[] @relation("FollowersRelation")
-  following Follows[] @relation("FollowingRelation")
-  Tag       Tag[]
+  id                 String              @id @default(cuid())
+  email              String              @unique
+  username           String              @unique
+  password           String
+  bio                String
+  avatar             String
+  firstName          String
+  lastName           String
+  Latitude           String
+  Longitude          String
+  Spiciness          Int
+  Sweetness          Int
+  Dish               String
+  Sourness           Int
+  Type               String
+  Allergies          String
+  City               String
+  posts              Post[]
+  likes              Like[]
+  comments           Comment[]
+  followers          Follows[]           @relation("FollowersRelation")
+  following          Follows[]           @relation("FollowingRelation")
+  Tag                Tag[]
+  Notification       Notification[]
+  NotificationUpdate NotificationUpdate?
+}
+
+model NotificationUpdate {
+  id       String   @id @default(cuid())
+  User     User     @relation(fields: [userId], references: [id])
+  dateTime DateTime @default(now())
+  userId   String   @unique
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  avatar    String?
+  message   String
+  creatorId String
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id])
 }
 
 model Post {
