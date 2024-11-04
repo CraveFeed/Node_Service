@@ -1,0 +1,109 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator db {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  username  String    @unique
+  password  String
+  bio       String
+  avatar    String
+  firstName String
+  lastName  String
+  Latitude  String
+  Longitude String
+  Spiciness Int
+  Sweetness Int
+  Dish      String
+  Sourness  Int
+  Type      String
+  Allergies String
+  City      String
+  posts     Post[]
+  likes     Like[]
+  comments  Comment[]
+  followers Follows[] @relation("FollowersRelation")
+  following Follows[] @relation("FollowingRelation")
+  Tag       Tag[]
+}
+
+model Post {
+  id             String      @id @default(cuid())
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  title          String
+  description    String
+  longitude      String
+  latitude       String
+  Cuisine        String
+  Dish           String
+  Type           String
+  Spiciness      Int
+  Sweetness      Int
+  Sourness       Int
+  pictures       String
+  userId         String
+  city           String
+  user           User        @relation(fields: [userId], references: [id])
+  likes          Like[]
+  comments       Comment[]
+  tags           Tag[]
+  restaurantId   String? // Optional
+  restaurant     Restaurant? @relation(fields: [restaurantId], references: [id])
+  originalPost   Post?       @relation("RepostRelation", fields: [originalPostId], references: [id])
+  originalPostId String? // For reposts, references the original post
+  repostedPosts  Post[]      @relation("RepostRelation")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Like {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+}
+
+model Follows {
+  id          String @id @default(cuid())
+  followerId  String
+  follower    User   @relation("FollowersRelation", fields: [followerId], references: [id])
+  followingId String
+  following   User   @relation("FollowingRelation", fields: [followingId], references: [id])
+}
+
+model Restaurant {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+}
