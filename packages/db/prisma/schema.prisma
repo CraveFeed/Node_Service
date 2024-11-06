@@ -7,6 +7,53 @@ generator db {
   provider = "prisma-client-js"
 }
 
+enum UserType {
+  REGULAR
+  BUSINESS
+}
+
+enum Currency {
+  USD // United States Dollar
+  EUR // Euro
+  GBP // British Pound Sterling
+  JPY // Japanese Yen
+  INR // Indian Rupee
+  AUD // Australian Dollar
+  CAD // Canadian Dollar
+  CHF // Swiss Franc
+  CNY // Chinese Yuan
+  SEK // Swedish Krona
+  NZD // New Zealand Dollar
+  MXN // Mexican Peso
+  SGD // Singapore Dollar
+  HKD // Hong Kong Dollar
+  NOK // Norwegian Krone
+  KRW // South Korean Won
+  TRY // Turkish Lira
+  RUB // Russian Ruble
+  ZAR // South African Rand
+  BRL // Brazilian Real
+}
+
+enum CountryCode {
+  India         @map("+91")
+  UnitedStates  @map("+1")
+  UnitedKingdom @map("+44")
+  Canada        @map("+1")
+  Australia     @map("+61")
+  Germany       @map("+49")
+  France        @map("+33")
+  Japan         @map("+81")
+  China         @map("+86")
+  SouthKorea    @map("+82")
+  Brazil        @map("+55")
+  SouthAfrica   @map("+27")
+  Russia        @map("+7")
+  Mexico        @map("+52")
+  Indonesia     @map("+62")
+  Italy         @map("+39")
+}
+
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -17,28 +64,170 @@ model User {
   firstName          String
   lastName           String
   Latitude           String
-  Longitude          String
+  Longitude          String?
+  banner             String
+  mobileVerified     Boolean             @default(false)
+  mobileNo           String?
+  CountryCode        CountryCode?
   Spiciness          Int
   Sweetness          Int
   Dish               String
   Sourness           Int
-  Type               String
-  Allergies          String
+  Type               UserType
   City               String
   posts              Post[]
   likes              Like[]
   comments           Comment[]
   followers          Follows[]           @relation("FollowersRelation")
   following          Follows[]           @relation("FollowingRelation")
-  Tag                Tag[]
   Notification       Notification[]
+  messages           Message[]
+  receivedMessages   Message[]
+  ChefCorner         ChefCorner[]
   NotificationUpdate NotificationUpdate?
+
+  Restaurant Restaurant?
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  senderId   String
+  receiverId String
+  createdAt  DateTime @default(now())
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: SetNull)
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: SetNull)
+}
+
+model ChefCorner {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  video       String
+  thumbnail   String
+  createdAt   DateTime  @default(now())
+  viewsCount  Int
+  hashTags    HashTag[]
+  likes       Like[]
+  comments    Comment[]
+  userId      String
+  User        User      @relation(fields: [userid], references: [id], onDelete: Cascade)
+}
+
+model Restaurant {
+  id        String   @id @default(cuid())
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  latitude  String
+  longitude String
+  events    Event[]
+  menus     Menu[]
+  userId    String   @unique
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id           String     @id @default(cuid())
+  name         String // Name of the event (e.g., "Happy Hour", "Live Music Night")
+  description  String // Description of the event
+  startDate    DateTime // Start date of the event
+  endDate      DateTime // End date of the event
+  location     String // Event location (restaurant address)
+  restaurantId String // Link to restaurat
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Menu {
+  id           String     @id @default(cuid())
+  name         String
+  description  String
+  price        Float
+  restaurantId String
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  title          String
+  description    String
+  longitude      String
+  latitude       String
+  Cuisine        String
+  Dish           String
+  isBusinessPost Boolean
+  pictures       String[]
+  userId         String
+  city           String?
+  impressions    Int
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes          Like[]
+  comments       Comment[]
+  hashTags       HashTag[]
+  originalPost   Post?     @relation("RepostRelation", fields: [originalPostId], references: [id], onDelete: Cascade)
+  originalPostId String? // For reposts
+  repostedPosts  Post[]    @relation("RepostRelation")
+}
+
+model Comment {
+  id         String      @id @default(cuid())
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  content    String
+  postId     String?
+  post       Post?       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  videoId    String?
+  chefcorner ChefCorner? @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id         String     @id @default(cuid())
+  postId     String
+  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  videoId    String
+  chefcorner ChefCorner @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model HashTag {
+  id           String     @id @default(cuid())
+  postId       String
+  chefcornerId String
+  word         String     @unique
+  post         Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  chefCorner   ChefCorner @relation(fields: [chefcornerId], references: [id], onDelete: Cascade)
+
+  @@index([word])
+}
+
+model TrendingHashtag {
+  id       String   @id @default(cuid())
+  word     String   @unique
+  count    Int
+  lastUsed DateTime
+}
+
+model Follows {
+  id          String @id @default(cuid())
+  followerId  String
+  follower    User   @relation("FollowersRelation", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User   @relation("FollowingRelation", fields: [followingId], references: [id], onDelete: Cascade)
 }
 
 model NotificationUpdate {
   id       String   @id @default(cuid())
   User     User     @relation(fields: [userId], references: [id])
   dateTime DateTime @default(now())
+  count    Int
   userId   String   @unique
 }
 
@@ -49,80 +238,5 @@ model Notification {
   message   String
   creatorId String
   createdAt DateTime @default(now())
-  User      User     @relation(fields: [userId], references: [id])
-}
-
-model Post {
-  id             String      @id @default(cuid())
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  title          String
-  description    String
-  longitude      String
-  latitude       String
-  Cuisine        String
-  Dish           String
-  Type           String
-  Spiciness      Int
-  Sweetness      Int
-  Sourness       Int
-  pictures       String
-  userId         String
-  city           String
-  user           User        @relation(fields: [userId], references: [id])
-  likes          Like[]
-  comments       Comment[]
-  tags           Tag[]
-  restaurantId   String? // Optional
-  restaurant     Restaurant? @relation(fields: [restaurantId], references: [id])
-  originalPost   Post?       @relation("RepostRelation", fields: [originalPostId], references: [id])
-  originalPostId String? // For reposts, references the original post
-  repostedPosts  Post[]      @relation("RepostRelation")
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  content   String
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-}
-
-model Like {
-  id     String @id @default(cuid())
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-}
-
-model Tag {
-  id     String @id @default(cuid())
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-}
-
-model Follows {
-  id          String @id @default(cuid())
-  followerId  String
-  follower    User   @relation("FollowersRelation", fields: [followerId], references: [id])
-  followingId String
-  following   User   @relation("FollowingRelation", fields: [followingId], references: [id])
-}
-
-model Restaurant {
-  id        String   @id @default(cuid())
-  name      String
-  address   String
-  city      String
-  state     String
-  zipCode   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  posts     Post[]
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
