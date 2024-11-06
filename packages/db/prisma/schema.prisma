@@ -111,6 +111,9 @@ model Restaurant {
   menus     Menu[]
   userId    String   @unique
   User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Optional relationship with posts where a restaurant might be tagged
+  posts Post[] // Posts that tagged the restaurant
 }
 
 model Event {
@@ -155,6 +158,10 @@ model Post {
   originalPost   Post?     @relation("RepostRelation", fields: [originalPostId], references: [id], onDelete: Cascade)
   originalPostId String? // For reposts
   repostedPosts  Post[]    @relation("RepostRelation")
+
+  // Optional relationship with Restaurant (if a regular user tags a restaurant in their post)
+  restaurantId String? // Foreign key to the Restaurant
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
 }
 
 model Comment {
