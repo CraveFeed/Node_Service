@@ -10,6 +10,6 @@ router.post('/signUp', authController.register)
 router.use(authenticateUser);
 
 router.get('/example',  exampleController.getExample);
-router.post('/signIn', authController.login)
+router.get('/signIn', authController.login)
 
 export default router;

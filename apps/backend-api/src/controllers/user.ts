@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 
-export const getExample = async (req: Request, res: Response): Promise<void> => {
+export const getExample = async (req: Request, res: Response): Promise<any> => {
     try {
         res.status(200).json({ message: 'Hello from the backend API!' });
     } catch (e ) {

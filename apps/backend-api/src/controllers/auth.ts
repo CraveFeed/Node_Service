@@ -6,7 +6,7 @@ import { UserType } from "@prisma/client"
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response): Promise<any> => {
     try {
         const { email, username, password, firstName, lastName, userType, Sweetness,  Spiciness,  Dish, Sourness } = req.body;
 
@@ -40,7 +40,7 @@ export const register = async (req: Request, res: Response) => {
     }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response): Promise<any> => {
     try {
         const { email, password } = req.body;
         const user = await pclient.user.findUnique({
