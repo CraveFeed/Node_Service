@@ -35,25 +35,6 @@ enum Currency {
   BRL // Brazilian Real
 }
 
-enum CountryCode {
-  India         @map("+91")
-  UnitedStates  @map("+1")
-  UnitedKingdom @map("+44")
-  Canada        @map("+1")
-  Australia     @map("+61")
-  Germany       @map("+49")
-  France        @map("+33")
-  Japan         @map("+81")
-  China         @map("+86")
-  SouthKorea    @map("+82")
-  Brazil        @map("+55")
-  SouthAfrica   @map("+27")
-  Russia        @map("+7")
-  Mexico        @map("+52")
-  Indonesia     @map("+62")
-  Italy         @map("+39")
-}
-
 model User {
   id                 String              @id @default(cuid())
   email              String              @unique
@@ -68,7 +49,7 @@ model User {
   banner             String
   mobileVerified     Boolean             @default(false)
   mobileNo           String?
-  CountryCode        CountryCode?
+  CountryCode        String?
   Spiciness          Int
   Sweetness          Int
   Dish               String
@@ -81,12 +62,14 @@ model User {
   followers          Follows[]           @relation("FollowersRelation")
   following          Follows[]           @relation("FollowingRelation")
   Notification       Notification[]
-  messages           Message[]
-  receivedMessages   Message[]
+  messages           Message[]           @relation("SentMessages")
+  receivedMessages   Message[]           @relation("ReceivedMessages")
   ChefCorner         ChefCorner[]
   NotificationUpdate NotificationUpdate?
 
   Restaurant Restaurant?
+
+  @@index([username, Type])
 }
 
 model Message {
@@ -95,8 +78,8 @@ model Message {
   senderId   String
   receiverId String
   createdAt  DateTime @default(now())
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: SetNull)
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: SetNull)
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
 }
 
 model ChefCorner {
@@ -111,7 +94,7 @@ model ChefCorner {
   likes       Like[]
   comments    Comment[]
   userId      String
-  User        User      @relation(fields: [userid], references: [id], onDelete: Cascade)
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Restaurant {
